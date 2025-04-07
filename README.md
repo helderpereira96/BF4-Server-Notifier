@@ -44,4 +44,5 @@ https://battlelog.battlefield.com/bf4/servers/
 ## 🧪 Notes
 
 - You must stay on the **Battlelog servers page** for the extension to work.
+- You must pre-filter with the website filters, then the extension will track in the informations in the screen.
 - The extension only works with the **Battlelog** version of BF4 (not the in-game browser).
