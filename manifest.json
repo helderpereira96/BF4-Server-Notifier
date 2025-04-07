@@ -21,5 +21,10 @@
   "background": {
     "service_worker": "background.js"
   },
-  "author": "Created by TorrentOfSouls"
+  "author": "Created by TorrentOfSouls",
+  "icons": {
+    "16": "src/media/icon.png",
+    "48": "src/media/icon.png",
+    "128": "src/media/icon.png"
+  }
 }
