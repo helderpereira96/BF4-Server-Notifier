@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BF4 Server Notifier</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 1rem;
+        padding-bottom: 85px;
+        width: 300px;
+        min-height: 600px;
+        box-sizing: border-box;
+        position: relative;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+        margin: 0;
+      }
+
+      h3 {
+        margin-top: 1rem;
+        font-size: 1rem;
+        font-weight: bold;
+        margin-bottom: 6px;
+      }
+
+      .checkbox-group {
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      #minPlayers {
+        width: 100%;
+        padding: 6px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+
+      #saveBtn,
+      #clearBtn {
+        width: 49%;
+        padding: 0.6rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 5px;
+      }
+
+      #saveBtn {
+        background-color: #007bff;
+        color: white;
+      }
+
+      #saveBtn:hover {
+        background-color: #0056b3;
+      }
+
+      #clearBtn {
+        background-color: #dc3545;
+        color: white;
+      }
+
+      #clearBtn:hover {
+        background-color: #b02a37;
+      }
+
+      #footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 1px solid #ddd;
+        padding: 10px;
+        box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      #toast {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #333;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-size: 13px;
+        z-index: 9999;
+        display: none;
+      }
+
+      #infoIcon {
+        font-size: 18px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      #toastInfo {
+        position: absolute;
+        top: 40px;
+        right: 10px;
+        background: #333;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 13px;
+        z-index: 9999;
+        display: none;
+        max-width: 260px;
+        line-height: 1.4;
+        text-align: left;
+      }
+
+      #toastInfo a {
+        color: #ffd700;
+        text-decoration: underline;
+      }
+
+      #toastInfo a:hover {
+        color: #fff;
+      }
+
+      .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .toggle-label {
+        margin-left: 10px;
+        font-size: 14px;
+      }
+
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 42px;
+        height: 22px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 22px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: #4caf50;
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h2>BF4 Server Notifier</h2>
+      <div id="infoIcon" title="About this extension">ℹ️</div>
+    </div>
+
+    <div class="toggle-wrapper">
+      <label class="switch">
+        <input type="checkbox" id="enableToggle" />
+        <span class="slider round"></span>
+      </label>
+      <span class="toggle-label">Extension Enabled</span>
+    </div>
+
+    <div id="toastInfo">
+      This extension checks for Battlefield 4 servers based on your selected
+      filters.<br /><br />
+      🔄 It auto-refreshes every 60 seconds.<br />
+      🗺️ You must select <strong>at least one map</strong> to activate
+      detection.<br />
+      🎮 Modes and presets are optional.<br /><br />
+      ⚠️ <strong>Important:</strong> You must be on the following page for the
+      extension to work:<br />
+      <a href="https://battlelog.battlefield.com/bf4/servers/" target="_blank">
+        https://battlelog.battlefield.com/bf4/servers/
+      </a>
+    </div>
+
+    <h3>Minimum Players</h3>
+    <input type="number" id="minPlayers" min="0" value="30" max="64" />
+
+    <h3>Maps</h3>
+    <div class="checkbox-group" id="mapCheckboxes"></div>
+
+    <h3>Modes</h3>
+    <div class="checkbox-group" id="modeCheckboxes"></div>
+
+    <h3>Presets</h3>
+    <div class="checkbox-group" id="presetCheckboxes"></div>
+
+    <div id="footer">
+      <button id="saveBtn">Save Preferences</button>
+      <button id="clearBtn">Clear All Filters</button>
+      <div
+        style="
+          margin-top: 10px;
+          font-size: 12px;
+          text-align: center;
+          opacity: 0.6;
+        "
+      >
+        Made with ❤️ by
+        <a
+          href="https://www.youtube.com/@TorrentOfSouls"
+          target="_blank"
+          style="color: inherit; text-decoration: underline"
+        >
+          TorrentOfSouls
+        </a>
+      </div>
+    </div>
+
+    <script src="popup.js" defer></script>
+
+    <div id="toast" class="toast"></div>
+  </body>
+</html>

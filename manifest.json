@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "BF4 Server Notifier",
+  "version": "1.0",
+  "description": "Get alerts when Battlefield 4 servers match your preferred maps, modes, and presets.",
+  "permissions": ["notifications", "storage", "tabs"],
+  "content_scripts": [
+    {
+      "matches": ["https://battlelog.battlefield.com/bf4/servers/*"],
+      "js": ["src/content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "src/media/icon.png",
+      "48": "src/media/icon.png",
+      "128": "src/media/icon.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "author": "Created by TorrentOfSouls"
+}
