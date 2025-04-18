@@ -78,13 +78,11 @@
                   "minify": true,
                   "inlineCritical": true
                 },
-                "fonts": true,
-                "buildOptimizer": true
+                "fonts": true
               },
               "sourceMap": false,
               "namedChunks": false,
               "extractLicenses": true,
-              "vendorChunk": false,
               "aot": true,
               "baseHref": "/",
               "fileReplacements": [
