@@ -84,13 +84,7 @@
               "namedChunks": false,
               "extractLicenses": true,
               "aot": true,
-              "baseHref": "/",
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
-                }
-              ]
+              "baseHref": "/"
             },
             "development": {
               "optimization": false,
