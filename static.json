@@ -1,0 +1,12 @@
+{
+  "root": "dist/bf4-server-notifier",
+  "routes": {
+    "/**": "index.html"
+  },
+  "clean_urls": true,
+  "headers": {
+    "/**": {
+      "Cache-Control": "no-cache, no-store, must-revalidate"
+    }
+  }
+}
