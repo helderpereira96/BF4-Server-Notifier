@@ -18,7 +18,7 @@ import { NotificationService } from "../../services/notification.service";
 
 enum StatusSearch {
   Disabled,
-  NoMaps,
+  NoMapsModes,
   Available,
   NotificationsDisabled,
 }
@@ -58,21 +58,15 @@ export class FiltersPanelComponent implements OnInit {
 
   serversFound: Server[] = [];
 
-  filtersDefault: Filters = {
-    minPlayers: 30,
-    regions: ["sam"],
-    platforms: ["pc"],
-    maps: [],
-    modes: [],
-    presets: [],
-    enabled: false,
-  };
-
   statusSearch = computed(() => {
     if (Notification.permission !== "granted")
       return StatusSearch.NotificationsDisabled;
     if (!this.currentFilters.enabled) return StatusSearch.Disabled;
-    if (this.currentFilters.maps.length == 0) return StatusSearch.NoMaps;
+    if (
+      this.currentFilters.maps.length == 0 &&
+      this.currentFilters.modes.length == 0
+    )
+      return StatusSearch.NoMapsModes;
     else {
       this.clickCountdown = 30;
       this.reloadCountdown = 600;
@@ -81,11 +75,12 @@ export class FiltersPanelComponent implements OnInit {
   });
 
   // Filtros selecionados
-  currentFilters: Filters = defaultFilters;
+  currentFilters: Filters = { ...defaultFilters };
 
   ngOnInit() {
     this.notificationService.requestPermission();
     this.loadFilters();
+    if (this.statusSearch() !== StatusSearch.Available) return;
     this.startTimers();
     this.loadServers();
   }
@@ -102,20 +97,12 @@ export class FiltersPanelComponent implements OnInit {
     this.isInfoVisible = false;
   }
 
-  toggleRegion(value: string, isChecked: Event) {
-    if (isChecked) {
-      this.currentFilters.regions = [value];
-    } else {
-      this.currentFilters.regions = [];
-    }
+  toggleRegion(value: string) {
+    this.currentFilters.regions = [value];
   }
 
-  togglePlatform(value: string, isChecked: boolean | null) {
-    if (isChecked) {
-      this.currentFilters.platforms = [value];
-    } else {
-      this.currentFilters.platforms = [];
-    }
+  togglePlatform(value: string) {
+    this.currentFilters.platforms = [value];
   }
 
   toggleMap(value: string, isChecked: boolean | null) {
@@ -167,7 +154,15 @@ export class FiltersPanelComponent implements OnInit {
   }
 
   clearFilters() {
-    this.currentFilters = defaultFilters;
+    this.currentFilters = {
+      regions: ["sam"],
+      platforms: ["pc"],
+      maps: [],
+      modes: [],
+      presets: ["Normal/Custom"],
+      minPlayers: 30,
+      enabled: true,
+    };
 
     this.showToast = true;
     this.toastMessage = "Configs reseted!";
@@ -185,14 +180,9 @@ export class FiltersPanelComponent implements OnInit {
   }
 
   startTimers() {
-    if (this.statusSearch() !== StatusSearch.Available) return;
-
     setInterval(() => {
-      if (this.isEnabled) {
-        if (this.clickCountdown > 0) this.clickCountdown--;
-        if (this.reloadCountdown > 0) this.reloadCountdown--;
-      }
-
+      if (this.clickCountdown > 0) this.clickCountdown--;
+      if (this.reloadCountdown > 0) this.reloadCountdown--;
       if (this.reloadCountdown === 0) window.location.reload();
       if (this.clickCountdown === 0) {
         this.clickCountdown = 30;
@@ -202,8 +192,6 @@ export class FiltersPanelComponent implements OnInit {
   }
 
   loadServers(): void {
-    if (!this.currentFilters.enabled) return;
-
     this.apiService
       .getServers(this.currentFilters)
       .subscribe(async (servers) => {
@@ -237,9 +225,11 @@ export class FiltersPanelComponent implements OnInit {
     server: Server,
     filters: Filters
   ): Promise<boolean> {
-    const isMapMatch = filters.maps
-      .map((map) => map.toLowerCase().trim())
-      .includes(server.currentMap.toLowerCase().trim());
+    const isMapMatch =
+      filters.maps.length === 0 ||
+      filters.maps
+        .map((map) => map.toLowerCase().trim())
+        .includes(server.currentMap.toLowerCase().trim());
 
     const isModeMatch =
       filters.modes.length === 0 ||
