@@ -1,0 +1,54 @@
+/* Estilos suaves */
+body {
+  color: #495057;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-image: url('../public/images/bf4-background.jpg');
+  background-size:cover;
+}
+/* Transições suaves */
+.card, .server-item {
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.server-item:hover {
+  background-color: #e9ecef !important;
+}
+
+/* Inputs suaves */
+.form-control, .form-select {
+  border-color: #ced4da;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: #adb5bd;
+  box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.1);
+}
+
+/* Checkboxes suaves */
+.form-check-input {
+  border-color: #adb5bd;
+}
+
+.form-check-input:checked {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+/* Barra de scroll discreta */
+.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+  background-color: #ced4da;
+  border-radius: 3px;
+}

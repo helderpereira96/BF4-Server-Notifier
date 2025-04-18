@@ -1,0 +1,325 @@
+<div id="main-container">
+  <main class="container">
+    <!-- Filters Section -->
+    <section id="section-principal" class="card mb-4">
+      <div class="p-3">
+        <!-- Title infos -->
+        <div class="row">
+          <div class="col-md-12">
+            <div
+              class="card-body"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: self-end;
+              "
+            >
+              <span
+                style="
+                  font-weight: bolder;
+                  font-size: xx-large;
+                  display: flex;
+                  align-items: flex-end;
+                  color: white;
+                "
+              >
+                BF4 Server Notifier
+                <p style="font-size: 12px; margin: 0 0 9px 12px">
+                  by:
+                  <a
+                    target="_blank"
+                    class="gradient-link"
+                    href="https://www.youtube.com/@TorrentOfSouls"
+                    >Torrent</a
+                  >
+                </p>
+              </span>
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                "
+              >
+                <div style="font-weight: bold">Status:</div>
+
+                <div>
+                  @if(statusSearch() === StatusSearch.NotificationsDisabled) {
+                  You need to enable notifications in the Browser } @if
+                  (statusSearch() === StatusSearch.Available){
+                  @if(clickCountdown >= 0){ ⏱️ Search servers in:
+                  {{ clickCountdown }}s } @else { Server found! } 🔁 Reload page
+                  in: {{ reloadCountdown }}s } @else if(statusSearch() ===
+                  StatusSearch.NoMaps) { Select at least one map } @else if
+                  (statusSearch() === StatusSearch.Disabled) { Current Disabled
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Found servers list -->
+        @if (serversFound.length) {
+        <div class="row mt-3">
+          <!-- Server Results -->
+          <div class="col-md-12">
+            <div class="card-body">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Servers Found ❗</th>
+                    <th>Players</th>
+                    <th>Map</th>
+                    <th>Mode</th>
+                    <th>Join</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let server of serversFound">
+                    <td>
+                      <strong>{{ server.prefix.trim() }}</strong>
+                      <div class="text-muted small">
+                        {{ server.region }}
+                      </div>
+                    </td>
+                    <td>{{ server.playerAmount }}/{{ server.maxPlayers }}</td>
+                    <td>{{ server.currentMap }}</td>
+                    <td>{{ server.mode }}</td>
+                    <td>
+                      <a
+                        [href]="server.serverLink"
+                        target="_blank"
+                        class="btn btn-sm btn-primary"
+                        title="Join Server"
+                      >
+                        <i class="fas fa-external-link-alt"></i> Join
+                      </a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        }
+
+        <!-- Players, buttons -->
+        <div class="row mt-3">
+          <div class="col-md-6">
+            <div class="card-body" style="display: flex; align-items: baseline">
+              <h2 class="h5" style="width: 40%">Minimum Players</h2>
+              <input
+                type="number"
+                class="form-control"
+                id="minPlayers"
+                [(ngModel)]="currentFilters.minPlayers"
+                min="0"
+                max="64"
+                style="width: 60%"
+              />
+            </div>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <div
+              class="card-body"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+              "
+            >
+              <button class="btn btn-success" (click)="saveFilters()">
+                Save Settings
+              </button>
+              <button class="btn btn-primary" (click)="clearFilters()">
+                Reset Filters
+              </button>
+              <div class="form-check form-switch" style="width: 160px">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="flexSwitchCheckDefault"
+                  [(ngModel)]="currentFilters.enabled"
+                />
+                <label class="form-check-label" for="flexSwitchCheckDefault">{{
+                  currentFilters.enabled === true
+                    ? "Search Enabled"
+                    : "Search Disabled"
+                }}</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!--Regions, Platforms, Presets -->
+        <div class="row mt-3">
+          <!-- Regions Filter -->
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-body">
+                <h3 class="h6 card-title">Regions</h3>
+                <div class="row">
+                  <div class="col-md-6" *ngFor="let region of regions">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [value]="region.value"
+                        [id]="'region-' + region.value"
+                        [checked]="
+                          currentFilters.regions.includes(region.value)
+                        "
+                        (change)="
+                          toggleRegion(
+                            region.value,
+                            $any($event.target).checked
+                          )
+                        "
+                      />
+                      <label
+                        class="form-check-label"
+                        [for]="'region-' + region.value"
+                      >
+                        {{ region.name }}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Platforms Filter -->
+          <div class="col-md-3">
+            <div class="card h-100">
+              <div class="card-body">
+                <h3 class="h6 card-title">Platforms</h3>
+                <div class="row">
+                  <div *ngFor="let platform of platforms">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [value]="platform.value"
+                        [id]="'platform-' + platform.value"
+                        [checked]="
+                          currentFilters.platforms.includes(platform.value)
+                        "
+                        (change)="
+                          togglePlatform(
+                            platform.value,
+                            $any($event.target).checked
+                          )
+                        "
+                      />
+                      <label
+                        class="form-check-label"
+                        [for]="'platform-' + platform.value"
+                      >
+                        {{ platform.name }}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Presets Filter -->
+          <div class="col-md-3">
+            <div class="card h-100">
+              <div class="card-body">
+                <h3 class="h6 card-title">Presets</h3>
+                <div class="form-check" *ngFor="let preset of presets">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    [value]="preset"
+                    [id]="'preset-' + preset"
+                    [checked]="currentFilters.presets.includes(preset)"
+                    (change)="togglePreset(preset, $any($event.target).checked)"
+                  />
+                  <label class="form-check-label" [for]="'preset-' + preset">
+                    {{ preset }}
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mapas (two lines) -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card" style="min-height: 300px">
+              <!-- Altura aumentada -->
+              <div class="card-body">
+                <h3 class="h6 card-title">Maps</h3>
+                <div style="column-count: 3; column-gap: 2rem">
+                  <div *ngFor="let group of mapGroups | keyvalue">
+                    <h6 class="sub-title mt-2 mb-1">
+                      {{ group.key }}
+                    </h6>
+                    <div class="form-check" *ngFor="let map of group.value">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [value]="map"
+                        [id]="'map-' + map"
+                        [checked]="currentFilters.maps.includes(map)"
+                        (change)="toggleMap(map, $any($event.target).checked)"
+                      />
+                      <label class="form-check-label" [for]="'map-' + map">
+                        {{ map }}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modes -->
+        <div class="row mt-3">
+          <!-- Modes Filter -->
+          <div class="col-md-12">
+            <div class="card h-100">
+              <div class="card-body">
+                <h3 class="h6 card-title">Modes</h3>
+                <div class="row">
+                  <div class="col-md-4" *ngFor="let mode of modes">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [value]="mode"
+                        [id]="'mode-' + mode"
+                        [checked]="currentFilters.modes.includes(mode)"
+                        (change)="toggleMode(mode, $any($event.target).checked)"
+                      />
+                      <label class="form-check-label" [for]="'mode-' + mode">
+                        {{ mode }}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="showToast" class="toast-notification toast-{{ toastType }}">
+        <div class="toast-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="toast-message">{{ toastMessage }}</div>
+        <button class="toast-close" (click)="showToast = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </section>
+  </main>
+</div>
