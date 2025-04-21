@@ -74,8 +74,26 @@ export class FiltersPanelComponent implements OnInit {
     }
   });
 
-  // Filtros selecionados
   currentFilters: Filters = { ...defaultFilters };
+  readonly worker: Worker | null = null;
+
+  constructor() {
+    if (typeof Worker !== "undefined") {
+      this.worker = new Worker(
+        new URL("../../workers/server-checker.worker", import.meta.url),
+        { type: "module" }
+      );
+
+      this.worker.onmessage = ({ data }) => {
+        if (data.length > 0) {
+          this.serversFound = data;
+          this.notificationService.notifyMatch(data[0]);
+          this.clickCountdown = -1;
+          console.log("serversFound", this.serversFound);
+        }
+      };
+    }
+  }
 
   ngOnInit() {
     this.notificationService.requestPermission();
@@ -192,33 +210,26 @@ export class FiltersPanelComponent implements OnInit {
   }
 
   loadServers(): void {
-    this.apiService
-      .getServers(this.currentFilters)
-      .subscribe(async (servers) => {
-        this.servers = servers;
-        const serverFound = await this.checkMatches(servers);
-
-        if (serverFound) {
-          this.clickCountdown = -1;
-          this.notificationService.notifyMatch(serverFound);
-        }
+    console.log("this.worker", this.worker);
+    if (this.worker) {
+      this.worker.postMessage({
+        filters: this.currentFilters,
       });
+    } else {
+      this.apiService.getServers(this.currentFilters).subscribe((servers) => {
+        this.checkMatchesFallback(servers);
+      });
+    }
   }
 
-  private async checkMatches(servers: Server[]): Promise<Server | null> {
-    const filters = this.filterService.getFilters();
-    let foundServer = null;
-
+  private async checkMatchesFallback(servers: Server[]): Promise<void> {
     for (const server of servers) {
-      const isMatch = await this.checkServerMatch(server, filters);
-
-      if (isMatch) {
-        foundServer = server;
-        this.serversFound.push(server);
-      }
+      const isMatch = await this.checkServerMatch(server, this.currentFilters);
+      if (isMatch) this.serversFound.push(server);
     }
-
-    return foundServer;
+    if (this.serversFound.length > 0) {
+      this.notificationService.notifyMatch(this.serversFound[0]);
+    }
   }
 
   private async checkServerMatch(
