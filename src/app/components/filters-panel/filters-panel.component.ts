@@ -197,7 +197,7 @@ export class FiltersPanelComponent implements OnInit {
   }
 
   startTimers() {
-    setInterval(() => {
+    const tick = () => {
       if (this.clickCountdown > 0) this.clickCountdown--;
       if (this.reloadCountdown > 0) this.reloadCountdown--;
       if (this.reloadCountdown === 0) window.location.reload();
@@ -205,7 +205,10 @@ export class FiltersPanelComponent implements OnInit {
         this.clickCountdown = 30;
         this.loadServers();
       }
-    }, 1000);
+      setTimeout(tick, 1000);
+    };
+
+    tick();
   }
 
   loadServers(): void {
