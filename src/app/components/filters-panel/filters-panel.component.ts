@@ -89,7 +89,6 @@ export class FiltersPanelComponent implements OnInit {
           this.serversFound = data;
           this.notificationService.notifyMatch(data[0]);
           this.clickCountdown = -1;
-          console.log("serversFound", this.serversFound);
         }
       };
     }
@@ -210,7 +209,6 @@ export class FiltersPanelComponent implements OnInit {
   }
 
   loadServers(): void {
-    console.log("this.worker", this.worker);
     if (this.worker) {
       this.worker.postMessage({
         filters: this.currentFilters,
