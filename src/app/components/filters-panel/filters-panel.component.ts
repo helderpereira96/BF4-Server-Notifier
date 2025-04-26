@@ -53,8 +53,8 @@ export class FiltersPanelComponent implements OnInit {
   isBodyVisible = true;
   isInfoVisible = false;
   isEnabled = true;
-  clickCountdown = 0;
-  reloadCountdown = 0;
+  clickCountdown = -1;
+  reloadCountdown = -1;
 
   serversFound: Server[] = [];
 
