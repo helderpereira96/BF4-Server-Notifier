@@ -75,16 +75,36 @@ export class FiltersPanelComponent implements OnInit {
   });
 
   currentFilters: Filters = { ...defaultFilters };
-  readonly worker: Worker | null = null;
+  readonly searchWorker: Worker | null = null;
+  readonly timerWorker: Worker;
 
   constructor() {
+    this.timerWorker = new Worker(
+      new URL("../../workers/timer.worker", import.meta.url),
+      { type: "module" }
+    );
+
+    this.timerWorker.onmessage = ({ data }) => {
+      if (data.type === "worker_ready") {
+        this.timerWorker.postMessage({ command: "start" });
+      }
+
+      if (data.type === "tick") {
+        this.tickTimers();
+      }
+    };
+
+    this.timerWorker.onerror = (error) => {
+      console.error("[Main] Worker error:", error);
+    };
+
     if (typeof Worker !== "undefined") {
-      this.worker = new Worker(
+      this.searchWorker = new Worker(
         new URL("../../workers/server-checker.worker", import.meta.url),
         { type: "module" }
       );
 
-      this.worker.onmessage = ({ data }) => {
+      this.searchWorker.onmessage = ({ data }) => {
         if (data.length > 0) {
           this.serversFound = data;
           this.notificationService.notifyMatch(data[0]);
@@ -94,11 +114,20 @@ export class FiltersPanelComponent implements OnInit {
     }
   }
 
+  tickTimers() {
+    if (this.clickCountdown > 0) this.clickCountdown--;
+    if (this.reloadCountdown > 0) this.reloadCountdown--;
+    if (this.reloadCountdown === 0) window.location.reload();
+    if (this.clickCountdown === 0) {
+      this.clickCountdown = 30;
+      this.loadServers();
+    }
+  }
+
   ngOnInit() {
     this.notificationService.requestPermission();
     this.loadFilters();
     if (this.statusSearch() !== StatusSearch.Available) return;
-    this.startTimers();
     this.loadServers();
   }
 
@@ -196,24 +225,9 @@ export class FiltersPanelComponent implements OnInit {
     this.isEnabled = this.currentFilters.enabled;
   }
 
-  startTimers() {
-    const tick = () => {
-      if (this.clickCountdown > 0) this.clickCountdown--;
-      if (this.reloadCountdown > 0) this.reloadCountdown--;
-      if (this.reloadCountdown === 0) window.location.reload();
-      if (this.clickCountdown === 0) {
-        this.clickCountdown = 30;
-        this.loadServers();
-      }
-      setTimeout(tick, 1000);
-    };
-
-    tick();
-  }
-
   loadServers(): void {
-    if (this.worker) {
-      this.worker.postMessage({
+    if (this.searchWorker) {
+      this.searchWorker.postMessage({
         filters: this.currentFilters,
       });
     } else {
