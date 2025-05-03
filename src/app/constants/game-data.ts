@@ -1,4 +1,4 @@
-import { Filters } from "../models/filter.model";
+import { AndOr, Filters } from "../models/filter.model";
 
 export const maps = {
   Vanilla: [
@@ -85,4 +85,5 @@ export const defaultFilters: Filters = {
   presets: ["Normal/Custom"],
   minPlayers: 30,
   enabled: true,
+  andOr: [AndOr.AND],
 };

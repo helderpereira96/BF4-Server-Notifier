@@ -6,4 +6,10 @@ export interface Filters {
   presets: string[];
   minPlayers: number;
   enabled: boolean;
+  andOr: AndOr[];
+}
+
+export enum AndOr {
+  AND = "0",
+  OR = "1",
 }

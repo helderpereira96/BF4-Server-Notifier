@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { Filters } from "../models/filter.model";
+import { AndOr, Filters } from "../models/filter.model";
 import { Server } from "../models/server.model";
 
 async function checkPreset(
@@ -72,7 +72,12 @@ addEventListener("message", async ({ data }) => {
 
     const isPlayerCountOk = server.playerAmount >= filters.minPlayers;
 
-    if (!isMapMatch || !isModeMatch || !isPlayerCountOk) {
+    const modeMapMatch =
+      filters.andOr === AndOr.AND
+        ? isMapMatch && isModeMatch
+        : isMapMatch ?? isModeMatch;
+
+    if (!(modeMapMatch && isPlayerCountOk)) {
       continue;
     }
 

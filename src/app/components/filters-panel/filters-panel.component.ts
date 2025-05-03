@@ -11,13 +11,15 @@ import {
 } from "../../constants/game-data";
 import { firstValueFrom } from "rxjs";
 import { Server } from "../../models/server.model";
-import { Filters } from "../../models/filter.model";
+import { AndOr, Filters } from "../../models/filter.model";
 import { FilterService } from "../../services/filter.service";
 import { ApiService } from "../../services/api.service";
 import { NotificationService } from "../../services/notification.service";
+import * as bootstrap from "bootstrap";
 
 enum StatusSearch {
   Disabled,
+  NoRegios,
   NoMapsModes,
   Available,
   NotificationsDisabled,
@@ -34,7 +36,9 @@ export class FiltersPanelComponent implements OnInit {
   filterService = inject(FilterService);
   apiService = inject(ApiService);
   notificationService = inject(NotificationService);
+  showPopup = false;
 
+  AndOr = AndOr;
   StatusSearch = StatusSearch;
   showToast = false;
   toastMessage = "";
@@ -53,6 +57,7 @@ export class FiltersPanelComponent implements OnInit {
   isBodyVisible = true;
   isInfoVisible = false;
   isEnabled = true;
+  andOr = [AndOr.AND];
   clickCountdown = -1;
   reloadCountdown = -1;
 
@@ -67,7 +72,9 @@ export class FiltersPanelComponent implements OnInit {
       this.currentFilters.modes.length == 0
     )
       return StatusSearch.NoMapsModes;
-    else {
+    if (this.currentFilters.regions.length == 0) {
+      return StatusSearch.NoRegios;
+    } else {
       this.clickCountdown = 30;
       this.reloadCountdown = 600;
       return StatusSearch.Available;
@@ -122,6 +129,22 @@ export class FiltersPanelComponent implements OnInit {
       this.clickCountdown = 30;
       this.loadServers();
     }
+  }
+
+  ngAfterViewInit() {
+    const tooltipTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    );
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    const popoverTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="popover"]')
+    );
+    popoverTriggerList.map(function (popoverTriggerEl) {
+      return new bootstrap.Popover(popoverTriggerEl);
+    });
   }
 
   ngOnInit() {
@@ -185,6 +208,10 @@ export class FiltersPanelComponent implements OnInit {
     this.currentFilters.enabled = isChecked ?? false;
   }
 
+  toggleAndOr(andOr: AndOr) {
+    this.currentFilters.andOr = [andOr];
+  }
+
   saveFilters() {
     this.filterService.saveFilters(this.currentFilters);
 
@@ -208,6 +235,7 @@ export class FiltersPanelComponent implements OnInit {
       presets: ["Normal/Custom"],
       minPlayers: 30,
       enabled: true,
+      andOr: [AndOr.AND],
     };
 
     this.showToast = true;
@@ -223,6 +251,7 @@ export class FiltersPanelComponent implements OnInit {
   loadFilters() {
     this.currentFilters = this.filterService.getFilters();
     this.isEnabled = this.currentFilters.enabled;
+    this.andOr = this.currentFilters.andOr;
   }
 
   loadServers(): void {
