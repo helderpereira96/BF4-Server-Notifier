@@ -82,53 +82,17 @@ export class FiltersPanelComponent implements OnInit {
   });
 
   currentFilters: Filters = { ...defaultFilters };
-  readonly searchWorker: Worker | null = null;
-  readonly timerWorker: Worker;
-
-  constructor() {
-    this.timerWorker = new Worker(
-      new URL("../../workers/timer.worker", import.meta.url),
-      { type: "module" }
-    );
-
-    this.timerWorker.onmessage = ({ data }) => {
-      if (data.type === "worker_ready") {
-        this.timerWorker.postMessage({ command: "start" });
-      }
-
-      if (data.type === "tick") {
-        this.tickTimers();
-      }
-    };
-
-    this.timerWorker.onerror = (error) => {
-      console.error("[Main] Worker error:", error);
-    };
-
-    if (typeof Worker !== "undefined") {
-      this.searchWorker = new Worker(
-        new URL("../../workers/server-checker.worker", import.meta.url),
-        { type: "module" }
-      );
-
-      this.searchWorker.onmessage = ({ data }) => {
-        if (data.length > 0) {
-          this.serversFound = data;
-          this.notificationService.notifyMatch(data[0]);
-          this.clickCountdown = -1;
-        }
-      };
-    }
-  }
 
   tickTimers() {
-    if (this.clickCountdown > 0) this.clickCountdown--;
-    if (this.reloadCountdown > 0) this.reloadCountdown--;
-    if (this.reloadCountdown === 0) window.location.reload();
-    if (this.clickCountdown === 0) {
-      this.clickCountdown = 30;
-      this.loadServers();
-    }
+    setInterval(() => {
+      if (this.clickCountdown > 0) this.clickCountdown--;
+      if (this.reloadCountdown > 0) this.reloadCountdown--;
+      if (this.reloadCountdown === 0) window.location.reload();
+      if (this.clickCountdown === 0) {
+        this.clickCountdown = 30;
+        this.loadServers();
+      }
+    }, 1000);
   }
 
   ngAfterViewInit() {
@@ -152,6 +116,7 @@ export class FiltersPanelComponent implements OnInit {
     this.loadFilters();
     if (this.statusSearch() !== StatusSearch.Available) return;
     this.loadServers();
+    this.tickTimers();
   }
 
   toggleBody() {
@@ -255,15 +220,9 @@ export class FiltersPanelComponent implements OnInit {
   }
 
   loadServers(): void {
-    if (this.searchWorker) {
-      this.searchWorker.postMessage({
-        filters: this.currentFilters,
-      });
-    } else {
-      this.apiService.getServers(this.currentFilters).subscribe((servers) => {
-        this.checkMatchesFallback(servers);
-      });
-    }
+    this.apiService.getServers(this.currentFilters).subscribe((servers) => {
+      this.checkMatchesFallback(servers);
+    });
   }
 
   private async checkMatchesFallback(servers: Server[]): Promise<void> {
@@ -273,6 +232,7 @@ export class FiltersPanelComponent implements OnInit {
     }
     if (this.serversFound.length > 0) {
       this.notificationService.notifyMatch(this.serversFound[0]);
+      this.clickCountdown = -1;
     }
   }
 
@@ -280,23 +240,23 @@ export class FiltersPanelComponent implements OnInit {
     server: Server,
     filters: Filters
   ): Promise<boolean> {
-    const isMapMatch =
-      filters.maps.length === 0 ||
-      filters.maps
-        .map((map) => map.toLowerCase().trim())
-        .includes(server.currentMap.toLowerCase().trim());
+    const isMapMatch = filters.maps
+      .map((map) => map.toLowerCase().trim())
+      .includes(server.currentMap.toLowerCase().trim());
 
-    const isModeMatch =
-      filters.modes.length === 0 ||
-      filters.modes
-        .map((map) => map.toLowerCase().trim())
-        .includes(server.mode.toLowerCase().trim());
+    const isModeMatch = filters.modes
+      .map((map) => map.toLowerCase().trim())
+      .includes(server.mode.toLowerCase().trim());
 
     const isPlayerCountOk = server.playerAmount >= filters.minPlayers;
 
-    if (!isMapMatch || !isModeMatch || !isPlayerCountOk) {
-      return false;
-    }
+    if (!isPlayerCountOk) return false;
+
+    const modeMapMatch = filters.andOr.includes(AndOr.AND)
+      ? isMapMatch && isModeMatch
+      : isMapMatch || isModeMatch;
+
+    if (!modeMapMatch) return false;
 
     if (filters.presets?.length > 0) {
       const isPresetMatch = await this.checkPreset(
