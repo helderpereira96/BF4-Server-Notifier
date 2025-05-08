@@ -240,13 +240,17 @@ export class FiltersPanelComponent implements OnInit {
     server: Server,
     filters: Filters
   ): Promise<boolean> {
-    const isMapMatch = filters.maps
-      .map((map) => map.toLowerCase().trim())
-      .includes(server.currentMap.toLowerCase().trim());
+    const isMapMatch =
+      !filters.maps.length ||
+      filters.maps
+        .map((map) => map.toLowerCase().trim())
+        .includes(server.currentMap.toLowerCase().trim());
 
-    const isModeMatch = filters.modes
-      .map((map) => map.toLowerCase().trim())
-      .includes(server.mode.toLowerCase().trim());
+    const isModeMatch =
+      !filters.modes.length ||
+      filters.modes
+        .map((map) => map.toLowerCase().trim())
+        .includes(server.mode.toLowerCase().trim());
 
     const isPlayerCountOk = server.playerAmount >= filters.minPlayers;
 
