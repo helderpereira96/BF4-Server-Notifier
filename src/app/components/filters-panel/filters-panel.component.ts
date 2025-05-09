@@ -84,15 +84,22 @@ export class FiltersPanelComponent implements OnInit {
   currentFilters: Filters = { ...defaultFilters };
 
   tickTimers() {
-    setInterval(() => {
+    const tick = () => {
       if (this.clickCountdown > 0) this.clickCountdown--;
       if (this.reloadCountdown > 0) this.reloadCountdown--;
-      if (this.reloadCountdown === 0) window.location.reload();
+      if (this.reloadCountdown === 0) {
+        window.location.reload();
+        return;
+      }
       if (this.clickCountdown === 0) {
         this.clickCountdown = 30;
         this.loadServers();
       }
-    }, 1000);
+
+      setTimeout(tick, 1000);
+    };
+
+    tick();
   }
 
   ngAfterViewInit() {
