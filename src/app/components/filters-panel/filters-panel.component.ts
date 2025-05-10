@@ -83,23 +83,28 @@ export class FiltersPanelComponent implements OnInit {
 
   currentFilters: Filters = { ...defaultFilters };
 
-  tickTimers() {
-    const tick = () => {
-      if (this.clickCountdown > 0) this.clickCountdown--;
-      if (this.reloadCountdown > 0) this.reloadCountdown--;
-      if (this.reloadCountdown === 0) {
-        window.location.reload();
-        return;
-      }
-      if (this.clickCountdown === 0) {
-        this.clickCountdown = 30;
-        this.loadServers();
+  readonly searchWorker: Worker | null = null;
+  readonly timerWorker: Worker;
+
+  constructor() {
+    this.timerWorker = new Worker(
+      new URL("../../workers/timer.worker", import.meta.url),
+      { type: "module" }
+    );
+
+    this.timerWorker.onmessage = ({ data }) => {
+      if (data.type === "worker_ready") {
+        this.timerWorker.postMessage({ command: "start" });
       }
 
-      setTimeout(tick, 1000);
+      if (data.type === "tick") {
+        this.tickTimers();
+      }
     };
 
-    tick();
+    this.timerWorker.onerror = (error) => {
+      console.error("[Main] Worker error:", error);
+    };
   }
 
   ngAfterViewInit() {
@@ -124,6 +129,16 @@ export class FiltersPanelComponent implements OnInit {
     if (this.statusSearch() !== StatusSearch.Available) return;
     this.loadServers();
     this.tickTimers();
+  }
+
+  tickTimers() {
+    if (this.clickCountdown > 0) this.clickCountdown--;
+    if (this.reloadCountdown > 0) this.reloadCountdown--;
+    if (this.reloadCountdown === 0) window.location.reload();
+    if (this.clickCountdown === 0) {
+      this.clickCountdown = 30;
+      this.loadServers();
+    }
   }
 
   toggleBody() {
