@@ -16,6 +16,7 @@ import { FilterService } from "../../services/filter.service";
 import { ApiService } from "../../services/api.service";
 import { NotificationService } from "../../services/notification.service";
 import * as bootstrap from "bootstrap";
+import { TitleService } from "../../services/title.service";
 
 enum StatusSearch {
   Disabled,
@@ -36,6 +37,7 @@ export class FiltersPanelComponent implements OnInit {
   filterService = inject(FilterService);
   apiService = inject(ApiService);
   notificationService = inject(NotificationService);
+  titleService = inject(TitleService);
   showPopup = false;
 
   AndOr = AndOr;
@@ -253,9 +255,14 @@ export class FiltersPanelComponent implements OnInit {
       if (isMatch) this.serversFound.push(server);
     }
     if (this.serversFound.length > 0) {
-      this.notificationService.notifyMatch(this.serversFound[0]);
-      this.clickCountdown = -1;
+      this.matchFound();
     }
+  }
+
+  private matchFound() {
+    this.notificationService.notifyMatch(this.serversFound[0]);
+    this.clickCountdown = -1;
+    this.titleService.startAlert("BF4 Server Notifier");
   }
 
   private async checkServerMatch(
