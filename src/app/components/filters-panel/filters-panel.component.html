@@ -41,7 +41,15 @@
                   align-items: center;
                 "
               >
-                <div style="font-weight: bold">Status:</div>
+                <div style="font-weight: bold">
+                  Status: @if(searchingServers()){
+                  <span style="color: rgb(255, 255, 255)"
+                    >Searching servers...</span
+                  >
+                  } @else if(this.serversFound.length > 0) {
+                  <span style="color: rgb(26, 255, 0)">Server Found!</span>}
+                  @else() {<span style="color: red">No server found</span>}
+                </div>
 
                 <div>
                   @if(statusSearch() === StatusSearch.NotificationsDisabled) {

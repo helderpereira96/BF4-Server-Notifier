@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit } from "@angular/core";
+import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {
@@ -46,8 +46,6 @@ export class FiltersPanelComponent implements OnInit {
   toastMessage = "";
   toastType = "success";
 
-  servers: Server[] = [];
-
   // Dados
   mapGroups = maps;
   modes = modes;
@@ -82,6 +80,8 @@ export class FiltersPanelComponent implements OnInit {
       return StatusSearch.Available;
     }
   });
+
+  searchingServers = signal(false);
 
   currentFilters: Filters = { ...defaultFilters };
 
@@ -244,6 +244,7 @@ export class FiltersPanelComponent implements OnInit {
   }
 
   loadServers(): void {
+    this.searchingServers.set(true);
     this.apiService.getServers(this.currentFilters).subscribe((servers) => {
       this.checkMatchesFallback(servers);
     });
@@ -252,8 +253,12 @@ export class FiltersPanelComponent implements OnInit {
   private async checkMatchesFallback(servers: Server[]): Promise<void> {
     for (const server of servers) {
       const isMatch = await this.checkServerMatch(server, this.currentFilters);
-      if (isMatch) this.serversFound.push(server);
+      if (isMatch) {
+        this.searchingServers.set(false);
+        this.serversFound.push(server);
+      }
     }
+    this.searchingServers.set(false);
     if (this.serversFound.length > 0) {
       this.matchFound();
     }
