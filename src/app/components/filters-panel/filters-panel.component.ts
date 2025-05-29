@@ -322,9 +322,7 @@ export class FiltersPanelComponent implements OnInit {
 
       if (!serverDetails) return false;
 
-      const isHardcore =
-        serverDetails.settings.all.vffi === "on" &&
-        serverDetails.settings.all.vhud === "off";
+      const isHardcore = serverDetails.settings.all.vshe == "60";
 
       return savedPresets
         .map((data) => data.toLowerCase().trim())

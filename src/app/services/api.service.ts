@@ -10,6 +10,7 @@ interface ServerDetails {
       vffi: string;
       vhud: string;
       vkca: string;
+      vshe: string;
     };
   };
 }
